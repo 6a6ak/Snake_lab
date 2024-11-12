@@ -39,25 +39,6 @@ void gotoxy(int x, int y) {
     printf("%c[%d;%df", 0x1B, y, x);
 }
 
-int msleep(long msec) {
-    struct timespec ts;
-    int res;
-
-    if (msec < 0) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    ts.tv_sec = msec / 1000;
-    ts.tv_nsec = (msec % 1000) * 1000000;
-
-    do {
-        res = nanosleep(&ts, &ts);
-    } while (res && errno == EINTR);
-
-    return res;
-}
-
 void drawBoundaries() {
     for (int row = 0; row < ROWS + 2; row++) {
         for (int col = 0; col < COLS + 2; col++) {
@@ -112,7 +93,6 @@ void initializeGame() {
 }
 
 int checkSelfCollision(Position pos) {
-    // Check if the head collides with any part of its body
     for (int i = 1; i < snake.length; i++) {
         if (pos.X == snake.body[i].X && pos.Y == snake.body[i].Y) {
             return 1;
@@ -158,22 +138,19 @@ void moveSnake() {
 }
 
 void processInput() {
-    if (_kbhit()) {
-        char ch = getch();
-        if (ch == 'w' && snake.direction != 's') snake.direction = 'w';
-        else if (ch == 's' && snake.direction != 'w') snake.direction = 's';
-        else if (ch == 'a' && snake.direction != 'd') snake.direction = 'a';
-        else if (ch == 'd' && snake.direction != 'a') snake.direction = 'd';
-    }
+    char ch = getch();  // Wait for input
+    if (ch == 'w' && snake.direction != 's') snake.direction = 'w';
+    else if (ch == 's' && snake.direction != 'w') snake.direction = 's';
+    else if (ch == 'a' && snake.direction != 'd') snake.direction = 'a';
+    else if (ch == 'd' && snake.direction != 'a') snake.direction = 'd';
 }
 
 int main() {
     initializeGame();
 
     while (!gameOver) {
-        processInput();
-        moveSnake();
-        msleep(100); // Control game speed
+        processInput();   // Wait for user input before each move
+        moveSnake();      // Move the snake only after an input
     }
 
     gotoxy(0, ROWS + 3);
