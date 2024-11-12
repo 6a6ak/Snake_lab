@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <errno.h>
 
-#define ROWS 10
-#define COLS 30
+#define ROWS 20
+#define COLS 50
 #define WALL '#'
 #define SNAKE_CHAR 'O'
 #define FOOD_CHAR 'F'
@@ -111,13 +111,12 @@ void initializeGame() {
     placeFood();
 }
 
-int checkCollision(Position pos) {
-    // Check wall collision
-    if (pos.X <= 0 || pos.X > COLS || pos.Y <= 0 || pos.Y > ROWS) return 1;
-    
-    // Check self collision
+int checkSelfCollision(Position pos) {
+    // Check if the head collides with any part of its body
     for (int i = 1; i < snake.length; i++) {
-        if (pos.X == snake.body[i].X && pos.Y == snake.body[i].Y) return 1;
+        if (pos.X == snake.body[i].X && pos.Y == snake.body[i].Y) {
+            return 1;
+        }
     }
     return 0;
 }
@@ -130,7 +129,14 @@ void moveSnake() {
     else if (snake.direction == 'a') newHead.X--;
     else if (snake.direction == 'd') newHead.X++;
 
-    if (checkCollision(newHead)) {
+    // Implement wrapping around the borders
+    if (newHead.X <= 0) newHead.X = COLS;
+    else if (newHead.X > COLS) newHead.X = 1;
+    if (newHead.Y <= 0) newHead.Y = ROWS;
+    else if (newHead.Y > ROWS) newHead.Y = 1;
+
+    // Check if the snake collides with itself
+    if (checkSelfCollision(newHead)) {
         gameOver = 1;
         return;
     }
@@ -167,7 +173,7 @@ int main() {
     while (!gameOver) {
         processInput();
         moveSnake();
-        msleep(200); // Control game speed
+        msleep(100); // Control game speed
     }
 
     gotoxy(0, ROWS + 3);
